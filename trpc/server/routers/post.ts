@@ -56,10 +56,20 @@ export const postRouter = router({
     }),
 
   // 投稿一覧取得
-  getPosts: publicProcedure.query(async () => {
+  getPosts: publicProcedure
+  .input(
+    z.object({
+      limit: z.number(),
+      offset: z.number(),
+    })
+  )
+  .query(async ({ input }) => {
     try {
+      const { offset, limit } = input
       // 投稿一覧取得
       const posts = await prisma.post.findMany({
+        skip: offset,
+        take: limit,        
         orderBy: {
           updatedAt: "desc",
         },
@@ -74,7 +84,10 @@ export const postRouter = router({
         },
       })
 
-      return posts
+      // 投稿の総数を取得
+      const totalPosts = await prisma.post.count()      
+
+      return { posts, totalPosts }
     } catch (error) {
       console.log(error)
       throw new TRPCError({

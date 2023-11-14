@@ -18,13 +18,19 @@ const PostDetailPage = async ({ params }: PostDetailPageProps) => {
   // 投稿詳細取得
   const post = await trpc.post.getPostById({ postId })
 
+
   if (!post) {
     return (
       <div className="text-center text-sm text-gray-500">投稿はありません</div>
     )
   }
 
-  return <PostDetail post={post} userId={user?.id} />
+  const { comments } = await trpc.comment.getComments({
+    postId,
+    userId: user?.id,
+  })  
+
+  return <PostDetail post={post} userId={user?.id} comments={comments} />
 }
 
 export default PostDetailPage
