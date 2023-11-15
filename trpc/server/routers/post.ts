@@ -13,12 +13,20 @@ export const postRouter = router({
         title: z.string(),
         content: z.string(),
         base64Image: z.string().optional(),
+        premium: z.boolean(),
       })
     )
     .mutation(async ({ input, ctx }) => {
       try {
-        const { title, content, base64Image } = input
+        const { title, content, base64Image, premium } = input
         const userId = ctx.user.id
+
+        if (!ctx.user.isAdmin) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "投稿権限がありません",
+          })
+        }        
 
         let image_url
 
@@ -34,6 +42,7 @@ export const postRouter = router({
             title,
             content,
             image: image_url,
+            premium,
           },
         })
 
@@ -140,13 +149,21 @@ export const postRouter = router({
         title: z.string(),
         content: z.string(),
         base64Image: z.string().optional(),
+        premium: z.boolean(),
       })
     )
     .mutation(async ({ input, ctx }) => {
       try {
-        const { postId, title, content, base64Image } = input
+        const { postId, title, content, base64Image, premium } = input
         const userId = ctx.user.id
         let image_url
+
+        if (!ctx.user.isAdmin) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "編集権限がありません",
+          })
+        }        
 
         if (base64Image) {
           const post = await prisma.post.findUnique({
@@ -192,6 +209,7 @@ export const postRouter = router({
           data: {
             title,
             content,
+            premium,
             ...(image_url && { image: image_url }),
           },
         })

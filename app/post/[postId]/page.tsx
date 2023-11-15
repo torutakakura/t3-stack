@@ -1,6 +1,7 @@
 import { trpc } from "@/trpc/client"
 import { getAuthSession } from "@/lib/nextauth"
 import { commentPerPage } from "@/lib/utils"
+import { getSubscription } from "@/actions/subscription"
 import PostDetail from "@/components/post/PostDetail"
 
 interface PostDetailPageProps {
@@ -33,6 +34,11 @@ const PostDetailPage = async ({ params, searchParams }: PostDetailPageProps) => 
     )
   }
 
+  // サブスクリプション有効チェック
+  const { isSubscribed } = await getSubscription({
+    userId: user?.id,
+  })  
+
   const { comments, totalComments } = await trpc.comment.getComments({
     postId,
     userId: user?.id,
@@ -48,7 +54,8 @@ const PostDetailPage = async ({ params, searchParams }: PostDetailPageProps) => 
       userId={user?.id} 
       comments={comments}
       pageCount={pageCount}
-      totalComments={totalComments}      
+      totalComments={totalComments}
+      isSubscribed={isSubscribed}    
     />
   )
 }
